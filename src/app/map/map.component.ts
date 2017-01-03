@@ -14,6 +14,8 @@ export class MapComponent implements OnInit {
   private static COLOR_THEME: string = 'teads'; // teads, copper, space
   private static TIME_INTERVAL: number = 50;
 
+  public isLoaderDisplayed: boolean = true
+
   private dataService: DataService
 
   private locations: any;
@@ -25,7 +27,6 @@ export class MapComponent implements OnInit {
   private mapHeight;
   private staticCanvas = [];
   private numberOfStaticCanvas = 6;
-  private isLoaderDisplayed = true;
   private animatedCanvasBubble: any;
   private animatedContextBubble: any;
 
@@ -293,10 +294,6 @@ export class MapComponent implements OnInit {
   hideLoader() {
     this.calculateSize();
     if (this.isLoaderDisplayed) {
-      this.calculateSize()
-      document.getElementById('loader-top').style.height = '0px'
-      document.getElementById('loader-bottom').style.height = '0px'
-      document.getElementById('loader-spinner').style.opacity = '0'
       this.isLoaderDisplayed = false
     }
   }

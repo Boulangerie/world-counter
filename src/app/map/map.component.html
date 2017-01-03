@@ -1,0 +1,32 @@
+<div id="container">
+  <div id="map">
+    <div id="background-blur-top" class="background-blur"></div>
+    <img src="https://drlisalongworth.files.wordpress.com/2008/06/earth-map-huge1.jpg" id="background"/>
+    <div id="sun-0" class="sun"></div>
+    <div id="sun-1" class="sun"></div>
+    <div id="sun-2" class="sun"></div>
+    <canvas id="animated"></canvas>
+    <div id="canvas-shadow">
+      <canvas *ngFor="let index of [0,1,2,3,4,5]" id="static-{{index}}"></canvas>
+    </div>
+    <div id="canvas-bubble">
+      <canvas *ngFor="let index of [0,1,2,3,4,5]" id="static-{{index}}"></canvas>
+    </div>
+    <div id="info">
+      <div id="time"></div>
+      <div id="counter"></div>
+      <div id="counter-info"></div>
+    </div>
+    <div id="background-blur-bottom" class="background-blur"></div>
+    <div id="footer">
+      <img class="logo" src="http://ecomnews.fr/uploads/Entreprise/janvier/teads.png" />
+      <p>© 2016 Made with love by Teads Front Team @ Montpellier, France</p>
+    </div>
+  </div>
+</div>
+<div id="loader-top" class="loader"></div>
+<div id="loader-bottom" class="loader">
+  <div id="loader-spinner" class="cssload-container">
+    <div class="cssload-whirlpool"></div>
+  </div>
+</div>

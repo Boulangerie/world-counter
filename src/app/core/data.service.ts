@@ -1,13 +1,17 @@
 import { Injectable } from '@angular/core'
 import * as _ from 'lodash'
+import { ConfigService } from './config.service'
 
 @Injectable()
 export class DataService {
 
-  private static MOCK_INTERVAL: number = 10000
-  private static MOCK_VOLUME: number = 100000
-
+  private configService: ConfigService
   private source: DataSource
+  private mockTime: number
+
+  public constructor(configService: ConfigService) {
+    this.configService = configService
+  }
 
   public subscribe(fn): void {
     switch (this.source) {
@@ -27,18 +31,22 @@ export class DataService {
   }
 
   private mockData(fn) {
-    setInterval(() => {
-      const time = Date.now()
-      const locations = []
-      for (let i = 0; i < DataService.MOCK_VOLUME; ++i) {
-        locations.push({
-          time: time + i,
-          latitude: _.random(-90, 90, true),
-          longitude: _.random(-180, 180, true)
-        })
-      }
-      fn(locations)
-    }, DataService.MOCK_INTERVAL)
+    this.mockTime = Date.now()
+    setInterval(this.refreshMock.bind(this), this.configService.get('mock.interval'), fn)
+    this.refreshMock(fn)
+  }
+
+  private refreshMock(fn) {
+    const locations = []
+    for (let i = 0; i < this.configService.get('mock.volume'); i++) {
+      locations.push({
+        time: this.mockTime,
+        latitude: _.random(-90, 90, true),
+        longitude: _.random(-180, 180, true)
+      })
+      this.mockTime = this.mockTime + 10
+    }
+    fn(locations)
   }
 
   private socketData(fn) {

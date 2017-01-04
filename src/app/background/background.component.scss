@@ -1,0 +1,22 @@
+.background {
+  width: 100%;
+  filter: saturate(60%);
+  -webkit-filter: saturate(60%);
+}
+
+.background-blur {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 100px;
+}
+
+.background-blur-top {
+  box-shadow: 0 25px 50px black inset;
+  z-index: 1;
+}
+
+.background-blur-bottom {
+  margin-top: -100px;
+  box-shadow: 0 -25px 50px black inset;
+}

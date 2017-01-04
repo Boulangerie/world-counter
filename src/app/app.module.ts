@@ -8,13 +8,17 @@ import { appRoutes } from './app.routes'
 import { AppComponent } from './app.component'
 import { MapComponent } from './map/map.component'
 import { CoreModule } from './core/core.module';
-import { LoaderComponent } from './loader/loader.component'
+import { LoaderComponent } from './loader/loader.component';
+import { SunComponent } from './sun/sun.component';
+import { BackgroundComponent } from './background/background.component'
 
 @NgModule({
   declarations: [
     AppComponent,
     MapComponent,
-    LoaderComponent
+    LoaderComponent,
+    SunComponent,
+    BackgroundComponent
   ],
   imports: [
     BrowserModule,

@@ -1,299 +1,198 @@
-import { Component, OnInit } from '@angular/core';
-import * as _ from 'lodash';
-import * as moment from 'moment';
-import * as io from 'socket.io-client';
+import { Component } from '@angular/core'
+import * as moment from 'moment'
+import * as _ from 'lodash'
 import { DataSource, DataService } from '../core/data.service'
+import { ViewChild } from '@angular/core/src/metadata/di'
+import { ViewportService } from '../core/viewport.service'
+import { ConfigService } from '../core/config.service'
 
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
-export class MapComponent implements OnInit {
+export class MapComponent {
 
-  private static COLOR_THEME: string = 'teads'; // teads, copper, space
-  private static TIME_INTERVAL: number = 50;
-
+  @ViewChild('background') public background
+  @ViewChild('animated') public animated
+  @ViewChild('canvasShadow') public canvasShadow
+  @ViewChild('canvasBubble') public canvasBubble
   public isLoaderDisplayed: boolean = true
+  public canvasLayers: Array<number>
+  public globalCounter: number
+  public time: string
 
+  private viewportService: ViewportService
   private dataService: DataService
+  private configService: ConfigService
 
-  private locations: any;
-  private globalCounter: any;
-  private displayedLocations;
-  private startTimestamp;
-  private startTime;
-  private mapWidth;
-  private mapHeight;
-  private staticCanvas = [];
-  private numberOfStaticCanvas = 6;
-  private animatedCanvasBubble: any;
-  private animatedContextBubble: any;
+  private locations: Array<any>
+  private startTimestamp: number
+  private startTime: number
+  private staticCanvas: Array<any>
 
-  constructor(dataService: DataService) {
+  public constructor(viewportService: ViewportService, dataService: DataService, configService: ConfigService) {
+    this.viewportService = viewportService
     this.dataService = dataService
-    this.locations = [];
-    this.displayedLocations = [];
-    this.globalCounter = 0;
-  }
+    this.configService = configService
 
-  ngOnInit() {
-  }
-
-  ngAfterViewInit() {
-
-    this.animatedCanvasBubble = document.getElementById('animated');
-    this.animatedContextBubble = this.animatedCanvasBubble.getContext('2d');
-
-    this.getStaticCanvases();
-
-    // this.refresh();
-    setInterval(() => {
-      this.refresh(Date.now())
-    }, MapComponent.TIME_INTERVAL)
-
-    this.calculateSize();
-
-    // for (let i = 0; i < this.numberOfStaticCanvas; ++i) {
-    //   this.createStaticCanvas();
-    // }
+    this.locations = []
+    this.staticCanvas = []
+    this.globalCounter = 0
+    this.canvasLayers = _.range(0, Math.round(60 / this.configService.get('point.persistence')))
 
     this.dataService.setSource(DataSource.MOCK)
     this.dataService.subscribe((locations) => {
       this.locations.push(...locations)
     })
-
-    window.addEventListener('resize', this.calculateSize);
   }
 
-  calculateSize() {
-    this.mapHeight = document.querySelectorAll('#background')[0].getBoundingClientRect().height;
-    this.mapWidth = document.querySelectorAll('#background')[0].getBoundingClientRect().width;
+  public ngAfterViewInit() {
+    this.dispatchStaticCanvases()
 
-    (<HTMLCanvasElement> document.querySelectorAll('#animated')[0]).height = this.mapHeight;
-    (<HTMLCanvasElement> document.querySelectorAll('#animated')[0]).width = this.mapWidth;
-    (<HTMLElement> document.querySelectorAll('#sun-0')[0]).style.height = this.mapHeight + 'px';
-    (<HTMLElement> document.querySelectorAll('#sun-0')[0]).style.width = this.mapWidth + 'px';
-    (<HTMLElement> document.querySelectorAll('#sun-1')[0]).style.height = this.mapHeight + 'px';
-    (<HTMLElement> document.querySelectorAll('#sun-1')[0]).style.width = this.mapWidth + 'px';
-    (<HTMLElement> document.querySelectorAll('#sun-2')[0]).style.height = this.mapHeight + 'px';
-    (<HTMLElement> document.querySelectorAll('#sun-2')[0]).style.width = this.mapWidth + 'px';
-
-    for (let canvas of this.staticCanvas) {
-      canvas.bubbleCanvas.width = this.mapWidth;
-      canvas.shadowCanvas.height = this.mapHeight;
-    }
+    setInterval(() => {
+      this.refresh(Date.now())
+    }, 1000 / this.configService.get('fps'))
   }
 
-  refresh(currentTimestamp: number = null) {
+  private calculateSize() {
+    this.viewportService.getWidth()
+      .subscribe((width) => {
+        for (let canvas of this.staticCanvas) {
+          canvas.bubbleCanvas.width = width
+          canvas.shadowCanvas.width = width
+          this.animated.nativeElement.width = width
+        }
+      })
+
+    this.viewportService.getHeight()
+      .subscribe((height) => {
+        for (let canvas of this.staticCanvas) {
+          canvas.bubbleCanvas.height = height
+          canvas.shadowCanvas.height = height
+          this.animated.nativeElement.height = height
+        }
+      })
+  }
+
+  private refresh(currentTimestamp: number = null) {
 
     if (this.locations.length > 0) {
-      this.hideLoader();
+      this.hideLoader()
 
-      let current = this.locations[0];
+      let current = this.locations[0]
 
-      // Calculation
       if (!this.startTimestamp) {
-        this.startTimestamp = currentTimestamp;
+        this.startTimestamp = currentTimestamp
       }
 
       let gapTimestamp = currentTimestamp - this.startTimestamp;
       if (!this.startTime) {
-        this.startTime = current.time;
+        this.startTime = current.time
       }
 
-      let gapTime = current.time - this.startTime;
-      let locationsToAdd = [];
+      let gapTime = current.time - this.startTime
+      let locationsToAdd = []
       while ((gapTime < gapTimestamp) && (this.locations.length > 1)) {
-        locationsToAdd.push(current);
-        this.locations.shift();
-        current = this.locations[0];
-        gapTime = current.time - this.startTime;
-        this.globalCounter++;
+        locationsToAdd.push(current)
+        this.locations.shift()
+        current = this.locations[0]
+        gapTime = current.time - this.startTime
+        this.globalCounter++
       }
 
-      // Rendering
-      document.getElementById('time').innerText = moment(current.time).format('HH:mm:ss.SSS');
-      document.getElementById('counter').innerText = this.globalCounter;
+      this.time = moment(current.time).format('HH:mm:ss.SSS')
 
-      var sunCoordinates = this.getSunPosition(current.time / 1000);
-      (<HTMLCanvasElement> document.querySelectorAll('#sun-0')[0]).style.backgroundImage = 'radial-gradient(ellipse 70% 280% at ' + (this.mapWidth / 2) + 'px ' + Math.round(sunCoordinates.y) + 'px, rgba(0, 0, 0, 0) 38%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.4) 42%, rgba(0, 0, 0, 0.6) 44%)';
-      (<HTMLCanvasElement> document.querySelectorAll('#sun-0')[0]).style.left = Math.round(sunCoordinates.x - (this.mapWidth / 2) - this.mapWidth) + 'px';
-      (<HTMLCanvasElement> document.querySelectorAll('#sun-1')[0]).style.backgroundImage = 'radial-gradient(ellipse 70% 280% at ' + (this.mapWidth / 2) + 'px ' + Math.round(sunCoordinates.y) + 'px, rgba(0, 0, 0, 0) 38%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.4) 42%, rgba(0, 0, 0, 0.6) 44%)';
-      (<HTMLCanvasElement> document.querySelectorAll('#sun-1')[0]).style.left = Math.round(sunCoordinates.x - (this.mapWidth / 2)) + 'px';
-      (<HTMLCanvasElement> document.querySelectorAll('#sun-2')[0]).style.backgroundImage = 'radial-gradient(ellipse 70% 280% at ' + (this.mapWidth / 2) + 'px ' + Math.round(sunCoordinates.y) + 'px, rgba(0, 0, 0, 0) 38%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.4) 42%, rgba(0, 0, 0, 0.6) 44%)';
-      (<HTMLCanvasElement> document.querySelectorAll('#sun-2')[0]).style.left = Math.round(sunCoordinates.x + (this.mapWidth / 2)) + 'px';
-
-      var canvasIndex = Math.floor(this.staticCanvas.length * (new Date(current.time)).getMinutes() / 60);
-      var opacityStep = 1 / (this.staticCanvas.length - 1);
-      for (var j = 0; j < this.staticCanvas.length; ++j) {
-        this.staticCanvas[(j + 1) % this.staticCanvas.length].bubbleCanvas.style.opacity = opacityStep * ((j - canvasIndex + this.staticCanvas.length) % this.staticCanvas.length);
-        this.staticCanvas[(j + 1) % this.staticCanvas.length].shadowCanvas.style.opacity = opacityStep * ((j - canvasIndex + this.staticCanvas.length) % this.staticCanvas.length);
+      const canvasIndex = Math.floor(this.staticCanvas.length * (new Date(current.time)).getMinutes() / 60)
+      const opacityStep = 1 / (this.staticCanvas.length - 1)
+      for (let j = 0; j < this.staticCanvas.length; ++j) {
+        this.staticCanvas[(j + 1) % this.staticCanvas.length].bubbleCanvas.style.opacity = opacityStep * ((j - canvasIndex + this.staticCanvas.length) % this.staticCanvas.length)
+        this.staticCanvas[(j + 1) % this.staticCanvas.length].shadowCanvas.style.opacity = opacityStep * ((j - canvasIndex + this.staticCanvas.length) % this.staticCanvas.length)
       }
 
-      var previousCanvasIndex = (canvasIndex + 1) % this.staticCanvas.length;
-      this.staticCanvas[previousCanvasIndex].bubbleContext.clearRect(0, 0, this.staticCanvas[previousCanvasIndex].bubbleCanvas.width, this.staticCanvas[previousCanvasIndex].bubbleCanvas.height);
-      this.staticCanvas[previousCanvasIndex].shadowContext.clearRect(0, 0, this.staticCanvas[previousCanvasIndex].shadowCanvas.width, this.staticCanvas[previousCanvasIndex].shadowCanvas.height);
+      const previousCanvasIndex = (canvasIndex + 1) % this.staticCanvas.length
+      this.staticCanvas[previousCanvasIndex].bubbleContext.clearRect(0, 0, this.staticCanvas[previousCanvasIndex].bubbleCanvas.width, this.staticCanvas[previousCanvasIndex].bubbleCanvas.height)
+      this.staticCanvas[previousCanvasIndex].shadowContext.clearRect(0, 0, this.staticCanvas[previousCanvasIndex].shadowCanvas.width, this.staticCanvas[previousCanvasIndex].shadowCanvas.height)
 
-      this.addStaticPoint(canvasIndex, current.latitude, current.longitude);
-      this.addAnimatedPoint(current.latitude, current.longitude);
+      this.addStaticPoint(canvasIndex, current.latitude, current.longitude)
+      this.addAnimatedPoint(current.latitude, current.longitude)
     }
 
   }
 
-  getStaticCanvases() {
-    let shadowCanvases = document.querySelectorAll('#canvas-shadow canvas')
+  private dispatchStaticCanvases() {
+    let shadowCanvases = this.canvasShadow.nativeElement.querySelectorAll('canvas')
     for (let index: number = 0 ; index < shadowCanvases.length; ++index) {
       let shadowCanvas = <HTMLCanvasElement> shadowCanvases[index]
-      shadowCanvas.height = this.mapHeight
-      shadowCanvas.width = this.mapWidth
+      shadowCanvas.height = this.viewportService.getHeight().getValue()
+      shadowCanvas.width = this.viewportService.getWidth().getValue()
       this.staticCanvas[index] = this.staticCanvas[index] || {}
       this.staticCanvas[index].shadowCanvas = shadowCanvas
       this.staticCanvas[index].shadowContext = shadowCanvas.getContext('2d')
     }
 
-    let bubbleCanvases = document.querySelectorAll('#canvas-bubble canvas')
+    let bubbleCanvases = this.canvasBubble.nativeElement.querySelectorAll('canvas')
     for (let index: number = 0 ; index < bubbleCanvases.length; ++index) {
       let bubbleCanvas = <HTMLCanvasElement> bubbleCanvases[index]
-      bubbleCanvas.height = this.mapHeight
-      bubbleCanvas.width = this.mapWidth
+      bubbleCanvas.height = this.viewportService.getHeight().getValue()
+      bubbleCanvas.width = this.viewportService.getWidth().getValue()
       this.staticCanvas[index] = this.staticCanvas[index] || {}
       this.staticCanvas[index].bubbleCanvas = bubbleCanvas
       this.staticCanvas[index].bubbleContext = bubbleCanvas.getContext('2d')
     }
   }
 
-  createStaticCanvas() {
-    let staticCanvasShadow = document.createElement('canvas');
-    staticCanvasShadow.id = 'static-' + this.staticCanvas.length;
-    let staticContextShadow = staticCanvasShadow.getContext('2d');
-    staticCanvasShadow.height = this.mapHeight;
-    staticCanvasShadow.width = this.mapWidth;
-    document.getElementById('canvas-shadow').appendChild(staticCanvasShadow);
+  private addStaticPoint(index, lat, lng) {
+    const strokeColor = this.configService.get('point.stroke')
+    const fillColor = this.configService.get('point.fill')
+    const strokeWidth = this.configService.get('point.width')
 
-    let staticCanvasBubble = document.createElement('canvas')
-    staticCanvasBubble.id = 'static-' + this.staticCanvas.length
-    let staticContextBubble = staticCanvasBubble.getContext('2d')
-    staticCanvasBubble.height = this.mapHeight
-    staticCanvasBubble.width = this.mapWidth
-    document.getElementById('canvas-bubble').appendChild(staticCanvasBubble)
+    let coordinates = this.getTranslate(lat, lng)
+    let staticContextBubble = this.staticCanvas[index].bubbleContext
+    staticContextBubble.beginPath()
+    staticContextBubble.fillStyle = fillColor
+    staticContextBubble.arc(coordinates.x, coordinates.y, strokeWidth, 0, 2 * Math.PI, false)
+    staticContextBubble.fill()
 
-    this.staticCanvas.push({
-      bubbleCanvas: staticCanvasBubble,
-      bubbleContext: staticContextBubble,
-      shadowCanvas: staticCanvasShadow,
-      shadowContext: staticContextShadow
-    })
+    let staticContextShadow = this.staticCanvas[index].shadowContext
+    staticContextShadow.beginPath()
+    staticContextShadow.fillStyle = strokeColor
+    staticContextShadow.arc(coordinates.x, coordinates.y, strokeWidth, 0, 2 * Math.PI, false)
+    staticContextShadow.lineWidth = strokeWidth
+    staticContextShadow.strokeStyle = strokeColor
+    staticContextShadow.fill()
+    staticContextShadow.stroke()
   }
 
-  addStaticPoint(index, lat, lng) {
-    let coordinates = this.getTranslate(lat, lng);
-    let staticContextBubble = this.staticCanvas[index].bubbleContext;
-    staticContextBubble.beginPath();
-    staticContextBubble.fillStyle = this.getColor();
-    staticContextBubble.arc(coordinates.x, coordinates.y, .2, 0, 2 * Math.PI, false);
-    staticContextBubble.fill();
-
-    let staticContextShadow = this.staticCanvas[index].shadowContext;
-    staticContextShadow.beginPath();
-    staticContextShadow.fillStyle = this.getColor(true);
-    staticContextShadow.arc(coordinates.x, coordinates.y, .2, 0, 2 * Math.PI, false);
-    staticContextShadow.lineWidth = .2;
-    staticContextShadow.strokeStyle = this.getColor(true);
-    staticContextShadow.fill();
-    staticContextShadow.stroke();
+  private addAnimatedPoint(lat: number, lng: number): void {
+    const strokeColor = this.configService.get('point.stroke')
+    const coordinates = this.getTranslate(lat, lng)
+    const animatedCanvasBubble: HTMLCanvasElement = <HTMLCanvasElement> this.animated.nativeElement
+    const animatedContextBubble: CanvasRenderingContext2D = animatedCanvasBubble.getContext('2d')
+    animatedContextBubble.clearRect(0, 0, animatedCanvasBubble.width, animatedCanvasBubble.height)
+    animatedContextBubble.beginPath()
+    animatedContextBubble.strokeStyle = strokeColor
+    animatedContextBubble.lineWidth = .2
+    animatedContextBubble.moveTo(0, coordinates.y)
+    animatedContextBubble.lineTo(animatedCanvasBubble.width, coordinates.y)
+    animatedContextBubble.moveTo(coordinates.x, 0)
+    animatedContextBubble.lineTo(coordinates.x, animatedCanvasBubble.height)
+    animatedContextBubble.stroke()
+    animatedContextBubble.beginPath()
+    animatedContextBubble.lineWidth = .3
+    animatedContextBubble.rect(coordinates.x - 5, coordinates.y - 5, 10, 10)
+    animatedContextBubble.stroke()
   }
 
-  addAnimatedPoint(lat, lng) {
-    let coordinates = this.getTranslate(lat, lng);
-    this.animatedContextBubble.clearRect(0, 0, this.animatedCanvasBubble.width, this.animatedCanvasBubble.height);
-    this.animatedContextBubble.beginPath();
-    this.animatedContextBubble.strokeStyle = this.getColor();
-    this.animatedContextBubble.lineWidth = .2;
-    this.animatedContextBubble.moveTo(0, coordinates.y);
-    this.animatedContextBubble.lineTo(this.animatedCanvasBubble.width, coordinates.y);
-    this.animatedContextBubble.moveTo(coordinates.x, 0);
-    this.animatedContextBubble.lineTo(coordinates.x, this.animatedCanvasBubble.height);
-    this.animatedContextBubble.stroke();
-    this.animatedContextBubble.beginPath();
-    this.animatedContextBubble.lineWidth = .3;
-    this.animatedContextBubble.rect(coordinates.x - 5, coordinates.y - 5, 10, 10);
-    this.animatedContextBubble.stroke();
-  }
-
-  getTranslate(lat, lng) {
-    let x = (lng + 180) * (this.mapWidth / 360)
-    let y = (lat - 90) / -180 * this.mapHeight
+  private getTranslate(lat, lng) {
+    let x = (lng + 180) * (this.viewportService.getWidth().getValue() / 360)
+    let y = (lat - 90) / -180 * this.viewportService.getHeight().getValue()
     return { x: x, y: y }
   }
 
-  getSunPosition(time) {
-    let b = (time - 946684800) / 31557600
-    let h = b / 100
-    let e = 2.236174E-4 + 1.35263017E-7 * h
-    let f = Math.PI / 180
-    let g = time / 86400 + 2440587.5
-    let c = (g - 2451545) / 36525
-    let k = 280.46646 + 36000.76983 * c + 3.032E-4 * c * c
-    let d = 357.52911 + 35999.05029 * c + 1.537E-4 * c * c
-
-    h = 9.71719333E-5 + 4.14515697E-8 * h
-    g = (280.46061837 + 360.98564736629 * (g - 2451545) + 3.87933E-4 * c * c + c * c * c / 3871E4) * f
-    d = (1.914602 - .004817 * c - 1.4E-5 * c * c) * Math.sin(d * f) + (.019993 - 1.01E-4 * c) * Math.sin(2 * d * f) + 2.89E-4 * Math.sin(3 * d * f)
-    k = k + d
-    d = 23 + 26 / 60 + 21.448 / 3600 + 46.815 / 3600 * c
-    c = Math.atan2(Math.cos(d * f) * Math.sin(k * f), Math.cos(k * f))
-    k = Math.sin(d * f) * Math.sin(k * f)
-    c = c + (e + h * Math.sin(c) * Math.tan(k)) * b
-    k = k + h * Math.cos(c) * b
-
-    let zen_RA = g / f % 360
-    let sun_ra = c / f % 360
-    let lat = k / f;
-
-    let lng;
-    for (lng = sun_ra - zen_RA; -180 > lng;) {
-      lng += 360;
-    }
-    for (; 180 < lng;) {
-      lng -= 360;
-    }
-    return this.getTranslate(lat, lng)
-  }
-
-  getColor(shadow: boolean = false) {
-    let color = 'white';
-    if (!shadow) {
-      switch (MapComponent.COLOR_THEME) {
-        case 'space':
-          color = 'lightyellow'
-          break
-        case 'copper':
-          color = 'peachpuff'
-          break
-        case 'teads':
-          color = 'lightcyan'
-          break
-      }
-    } else {
-      switch (MapComponent.COLOR_THEME) {
-        case 'space':
-          color = 'gold'
-          break
-        case 'copper':
-          color = 'orangered'
-          break
-        case 'teads':
-          color = '#1fc5cf'
-          break
-      }
-    }
-    return color
-  }
-
-  hideLoader() {
-    this.calculateSize();
+  private hideLoader() {
     if (this.isLoaderDisplayed) {
+      this.calculateSize()
       this.isLoaderDisplayed = false
     }
   }

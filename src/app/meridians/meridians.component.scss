@@ -1,0 +1,18 @@
+.meridians {
+  display: flex;
+  margin-bottom: 15px;
+  line-height: 1rem;
+  height: 1rem;
+}
+
+.meridian {
+  display: inline-block;
+  color: #777;
+  flex: 1;
+  font-size: 0.5rem;
+  &.active {
+    color: white;
+    font-weight: bold;
+    font-size: 0.8rem;
+  }
+}

@@ -1,0 +1,27 @@
+<div id="container">
+  <div class="header">
+    <p>© 2017 Made with ♥ by Yannick Galatol @ Montpellier, France</p>
+  </div>
+  <div id="map">
+    <app-background></app-background>
+    <app-sun></app-sun>
+    <canvas #animated></canvas>
+    <div #canvasShadow>
+      <canvas *ngFor="let i of canvasLayers"></canvas>
+    </div>
+    <div #canvasBubble>
+      <canvas *ngFor="let i of canvasLayers"></canvas>
+    </div>
+    <div class="info">
+      <app-meridians></app-meridians>
+      <div class="time">
+        <div>{{time}}</div>
+      </div>
+      <div class="counter">{{globalCounter|number}}</div>
+      <div class="time">
+        <div>video completes</div>
+      </div>
+    </div>
+  </div>
+</div>
+<app-loader [visible]="isLoaderDisplayed"></app-loader>

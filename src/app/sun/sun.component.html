@@ -1,0 +1,18 @@
+<div id="sun-0" class="sun" [ngStyle]="{
+  height: height + 'px',
+  width: width + 'px',
+  left: coordinates.x - (width / 2) - width + 'px',
+  backgroundImage: 'radial-gradient(ellipse 70% 280% at ' + (width / 2) + 'px ' + coordinates.y + 'px, rgba(0, 0, 0, 0) 38%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.4) 42%, rgba(0, 0, 0, 0.6) 44%)'
+}"></div>
+<div id="sun-1" class="sun" [ngStyle]="{
+  height: height + 'px',
+  width: width + 'px',
+  left: coordinates.x - (width / 2) + 'px',
+  backgroundImage: 'radial-gradient(ellipse 70% 280% at ' + (width / 2) + 'px ' + coordinates.y + 'px, rgba(0, 0, 0, 0) 38%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.4) 42%, rgba(0, 0, 0, 0.6) 44%)'
+}"></div>
+<div id="sun-2" class="sun" [ngStyle]="{
+  height: height + 'px',
+  width: width + 'px',
+  left: coordinates.x + (width / 2) + 'px',
+  backgroundImage: 'radial-gradient(ellipse 70% 280% at ' + (width / 2) + 'px ' + coordinates.y + 'px, rgba(0, 0, 0, 0) 38%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.4) 42%, rgba(0, 0, 0, 0.6) 44%)'
+}"></div>

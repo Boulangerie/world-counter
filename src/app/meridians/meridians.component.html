@@ -1,0 +1,3 @@
+<div class="meridians">
+  <div class="meridian" *ngFor="let meridian of meridians" [ngClass]="{ 'active': (currentMeridian === meridian) }">{{meridian}}</div>
+</div>

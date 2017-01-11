@@ -9,8 +9,9 @@ export class ConfigService {
     point: {
       persistence: 10,
       width: 0.2,
-      stroke: 'lightcyan',
-      fill: '#1fc5cf'
+      stroke: 'rgba(41, 235, 253, 0.2)',
+      fill: 'white',
+      cursor: 'white'
     },
     background: {
       path: '/assets/backgrounds/',
@@ -18,7 +19,14 @@ export class ConfigService {
     },
     sun: {
       display: true,
-      refreshInterval: 30
+      refreshInterval: 30000
+    },
+    data: {
+      samplingRatio: 10
+    },
+    socket: {
+      server: 'http://localhost:3001',
+      event: 'hits'
     },
     mock: {
       interval: 30000,

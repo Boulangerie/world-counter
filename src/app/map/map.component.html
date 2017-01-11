@@ -1,4 +1,7 @@
 <div id="container">
+  <div class="header">
+    <p>© 2017 Made with ♥ by Yannick Galatol @ Montpellier, France</p>
+  </div>
   <div id="map">
     <app-background></app-background>
     <app-sun></app-sun>
@@ -9,12 +12,15 @@
     <div #canvasBubble>
       <canvas *ngFor="let i of canvasLayers"></canvas>
     </div>
-    <div id="info">
-      <div id="time">{{time}}</div>
-      <div id="counter">{{globalCounter}}</div>
-    </div>
-    <div id="footer">
-      <p>© 2017 Made with love by Yannick Galatol @ Montpellier, France</p>
+    <div class="info">
+      <app-meridians></app-meridians>
+      <div class="time">
+        <div>{{time}}</div>
+      </div>
+      <div class="counter">{{globalCounter|number}}</div>
+      <div class="time">
+        <div>video completes</div>
+      </div>
     </div>
   </div>
 </div>

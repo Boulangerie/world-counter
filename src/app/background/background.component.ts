@@ -27,18 +27,20 @@ export class BackgroundComponent {
   }
 
   public calculateSize() {
-    const rect = this.image.nativeElement.getBoundingClientRect()
+    if (this.image) {
+      const rect = this.image.nativeElement.getBoundingClientRect()
 
-    const height = rect.height
-    const viewportHeight = this.viewportService.getHeight().getValue()
-    if (viewportHeight !== height) {
-      this.viewportService.getHeight().next(height)
-    }
+      const height = rect.height
+      const viewportHeight = this.viewportService.getHeight().getValue()
+      if (viewportHeight !== height) {
+        this.viewportService.getHeight().next(height)
+      }
 
-    const width = rect.width
-    const viewportWidth = this.viewportService.getWidth().getValue()
-    if (viewportWidth !== width) {
-      this.viewportService.getWidth().next(width)
+      const width = rect.width
+      const viewportWidth = this.viewportService.getWidth().getValue()
+      if (viewportWidth !== width) {
+        this.viewportService.getWidth().next(width)
+      }
     }
   }
 }

@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser'
-import { NgModule } from '@angular/core'
+import { NgModule, LOCALE_ID } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { HttpModule } from '@angular/http'
 import { RouterModule } from '@angular/router'
@@ -10,7 +10,10 @@ import { MapComponent } from './map/map.component'
 import { CoreModule } from './core/core.module';
 import { LoaderComponent } from './loader/loader.component';
 import { SunComponent } from './sun/sun.component';
-import { BackgroundComponent } from './background/background.component'
+import { BackgroundComponent } from './background/background.component';
+import { MeridiansComponent } from './meridians/meridians.component'
+
+const userLang: string = window.navigator.language
 
 @NgModule({
   declarations: [
@@ -18,7 +21,8 @@ import { BackgroundComponent } from './background/background.component'
     MapComponent,
     LoaderComponent,
     SunComponent,
-    BackgroundComponent
+    BackgroundComponent,
+    MeridiansComponent
   ],
   imports: [
     BrowserModule,
@@ -27,7 +31,9 @@ import { BackgroundComponent } from './background/background.component'
     RouterModule.forRoot(appRoutes),
     CoreModule
   ],
-  providers: [],
+  providers: [
+    { provide: LOCALE_ID, useValue: userLang }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -19,7 +19,7 @@ export class SunComponent {
 
     setInterval(() => {
       this.refresh()
-    }, this.configService.get('sun.refreshInterval') * 1000)
+    }, this.configService.get('sun.refreshInterval'))
 
     this.viewportService.getWidth()
       .subscribe(() => {

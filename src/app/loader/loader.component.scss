@@ -11,12 +11,14 @@
 
 .loader-top {
   top: 0;
-  background: radial-gradient(at 50% 100%, #222 25%, black, #222);
+  //background: radial-gradient(at 50% 100%, #222 25%, black, #222);
+  background-color: black;
 }
 
 .loader-bottom {
   bottom: 0;
-  background: radial-gradient(at 50% 0%, #222 25%, black, #222);
+  //background: radial-gradient(at 50% 0%, #222 25%, black, #222);
+  background-color: black;
 }
 
 .cssload-container {

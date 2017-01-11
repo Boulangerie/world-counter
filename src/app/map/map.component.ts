@@ -30,6 +30,7 @@ export class MapComponent {
   private startTimestamp: number
   private startTime: number
   private staticCanvas: Array<any>
+  private static TYPE: string = 'videocomplete'
 
   public constructor(viewportService: ViewportService, dataService: DataService, configService: ConfigService) {
     this.viewportService = viewportService
@@ -38,13 +39,22 @@ export class MapComponent {
 
     this.locations = []
     this.staticCanvas = []
-    this.globalCounter = 0
     this.canvasLayers = _.range(0, Math.round(60 / this.configService.get('point.persistence')))
 
-    this.dataService.setSource(DataSource.MOCK)
+    this.dataService
+      .getDailyCount(MapComponent.TYPE)
+      .subscribe((count: number) => {
+        console.log(`Daily count ${count}`)
+        this.globalCounter = count
+      })
+
+    this.dataService.setSource(DataSource.SOCKET)
     this.dataService.subscribe((locations) => {
-      this.locations.push(...locations)
-    })
+      console.log(`Received ${locations.length} locations`)
+      for (const location of locations) {
+        this.locations.push(location)
+      }
+    }, MapComponent.TYPE)
   }
 
   public ngAfterViewInit() {
@@ -77,7 +87,7 @@ export class MapComponent {
 
   private refresh(currentTimestamp: number = null) {
 
-    if (this.locations.length > 0) {
+    if ((typeof this.globalCounter === 'number') && this.locations.length > 0) {
       this.hideLoader()
 
       let current = this.locations[0]
@@ -86,7 +96,7 @@ export class MapComponent {
         this.startTimestamp = currentTimestamp
       }
 
-      let gapTimestamp = currentTimestamp - this.startTimestamp;
+      let gapTimestamp = currentTimestamp - this.startTimestamp
       if (!this.startTime) {
         this.startTime = current.time
       }
@@ -101,7 +111,7 @@ export class MapComponent {
         this.globalCounter++
       }
 
-      this.time = moment(current.time).format('HH:mm:ss.SSS')
+      this.time = moment(current.time).format('HH:mm:ss')
 
       const canvasIndex = Math.floor(this.staticCanvas.length * (new Date(current.time)).getMinutes() / 60)
       const opacityStep = 1 / (this.staticCanvas.length - 1)
@@ -157,7 +167,7 @@ export class MapComponent {
     let staticContextShadow = this.staticCanvas[index].shadowContext
     staticContextShadow.beginPath()
     staticContextShadow.fillStyle = strokeColor
-    staticContextShadow.arc(coordinates.x, coordinates.y, strokeWidth, 0, 2 * Math.PI, false)
+    staticContextShadow.arc(coordinates.x - strokeWidth, coordinates.y - strokeWidth, strokeWidth * 2, 0, 2 * Math.PI, false)
     staticContextShadow.lineWidth = strokeWidth
     staticContextShadow.strokeStyle = strokeColor
     staticContextShadow.fill()
@@ -165,7 +175,7 @@ export class MapComponent {
   }
 
   private addAnimatedPoint(lat: number, lng: number): void {
-    const strokeColor = this.configService.get('point.stroke')
+    const strokeColor = this.configService.get('point.cursor')
     const coordinates = this.getTranslate(lat, lng)
     const animatedCanvasBubble: HTMLCanvasElement = <HTMLCanvasElement> this.animated.nativeElement
     const animatedContextBubble: CanvasRenderingContext2D = animatedCanvasBubble.getContext('2d')

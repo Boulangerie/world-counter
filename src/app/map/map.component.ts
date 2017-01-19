@@ -42,15 +42,15 @@ export class MapComponent {
     this.canvasLayers = _.range(0, Math.round(60 / this.configService.get('point.persistence')))
 
     this.dataService
-      .getDailyCount(MapComponent.TYPE)
+      .getInitialCount(MapComponent.TYPE)
       .subscribe((count: number) => {
-        console.log(`Daily count ${count}`)
         this.globalCounter = count
+      }, () => {
+        this.globalCounter = 0
       })
 
     this.dataService.setSource(DataSource.SOCKET)
     this.dataService.subscribe((locations) => {
-      console.log(`Received ${locations.length} locations`)
       for (const location of locations) {
         this.locations.push(location)
       }
@@ -60,9 +60,7 @@ export class MapComponent {
   public ngAfterViewInit() {
     this.dispatchStaticCanvases()
 
-    setInterval(() => {
-      this.refresh(Date.now())
-    }, 1000 / this.configService.get('fps'))
+    this.refresh()
   }
 
   private calculateSize() {
@@ -91,7 +89,6 @@ export class MapComponent {
       this.hideLoader()
 
       let current = this.locations[0]
-
       if (!this.startTimestamp) {
         this.startTimestamp = currentTimestamp
       }
@@ -102,13 +99,13 @@ export class MapComponent {
       }
 
       let gapTime = current.time - this.startTime
-      let locationsToAdd = []
-      while ((gapTime < gapTimestamp) && (this.locations.length > 1)) {
-        locationsToAdd.push(current)
+      while ((gapTime < gapTimestamp) && (this.locations.length > 0)) {
         this.locations.shift()
-        current = this.locations[0]
-        gapTime = current.time - this.startTime
-        this.globalCounter++
+        if (this.locations.length > 0) {
+          current = this.locations[0]
+          gapTime = current.time - this.startTime
+          this.globalCounter++
+        }
       }
 
       this.time = moment(current.time).format('HH:mm:ss')
@@ -128,6 +125,7 @@ export class MapComponent {
       this.addAnimatedPoint(current.latitude, current.longitude)
     }
 
+    requestAnimationFrame(this.refresh.bind(this))
   }
 
   private dispatchStaticCanvases() {

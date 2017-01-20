@@ -63,6 +63,10 @@ export class MapComponent {
     this.refresh()
   }
 
+  public get label() {
+    return this.configService.get('socket.label')
+  }
+
   private calculateSize() {
     this.viewportService.getWidth()
       .subscribe((width) => {

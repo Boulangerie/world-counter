@@ -29,7 +29,8 @@ export class ConfigService {
     socket: {
       server: '',
       type: 'hits',
-      filter: 'event'
+      filter: 'event',
+      label: 'video completes'
     },
     mock: {
       interval: 30000,

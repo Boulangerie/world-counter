@@ -5,10 +5,9 @@ import * as _ from 'lodash'
 export class ConfigService {
 
   private config: any = {
-    fps: 20,
     point: {
       persistence: 10,
-      width: 0.2,
+      width: 0.05,
       stroke: 'rgba(41, 235, 253, 0.2)',
       fill: 'white',
       cursor: 'white'
@@ -24,9 +23,13 @@ export class ConfigService {
     data: {
       samplingRatio: 10
     },
+    initialCount: {
+      url: '/count/daily'
+    },
     socket: {
-      server: 'http://localhost:3001',
-      event: 'hits'
+      server: '',
+      type: 'hits',
+      filter: 'event'
     },
     mock: {
       interval: 30000,

@@ -36,11 +36,12 @@ export class DataService {
     this.source = source
   }
 
-  public getDailyCount(type: string, unsample: boolean = true): Observable<any> {
+  public getInitialCount(type: string, unsample: boolean = true): Observable<any> {
     const offset = moment().utcOffset()
     const samplingRatio: number = <number> this.configService.get('data.samplingRatio')
+    const url: string = <string> this.configService.get('initialCount.url')
     return this.http
-      .get(`http://localhost:3000/hit/daily-count?offset=${offset}`)
+      .get(`${url}?offset=${offset}`)
       .map((res: Response) => {
         const body = res.json()
         const count = _.get(body, type, 0)
@@ -66,7 +67,7 @@ export class DataService {
     const locations = []
     for (let i = 0; i < this.configService.get('mock.volume'); i++) {
       locations.push({
-        event: type,
+        type: type,
         time: this.mockTime,
         latitude: _.random(-90, 90, true),
         longitude: _.random(-180, 180, true)
@@ -78,13 +79,14 @@ export class DataService {
 
   private socketData(fn, type) {
     const socket = io(this.configService.get('socket.server'))
-    socket.on(this.configService.get('socket.event'), (msg) => {
-      const locations = _.filter(msg, { 'event': type })
+    const filter = <string> this.configService.get('socket.filter')
+    socket.on(this.configService.get('socket.type'), (msg) => {
+      const locations = _.filter(msg, { [filter]: type })
       fn(this.formatLocations(locations))
     })
   }
 
-  private formatLocations(newLocations: Array<any>, unsample: boolean = false) {
+  private formatLocations(newLocations: Array<any>, unsample: boolean = true) {
     for (let newLocation of newLocations) {
       newLocation.time = parseInt(newLocation.time, 10)
       newLocation.longitude = parseFloat(newLocation.longitude)
@@ -92,7 +94,8 @@ export class DataService {
     }
 
     if (unsample === true) {
-      const locationsByType = _.groupBy(newLocations, 'event')
+      const filter = <string> this.configService.get('socket.filter')
+      const locationsByType = _.groupBy(newLocations, filter)
       const samplingRatio: number = <number> this.configService.get('data.samplingRatio')
 
       _.forEach(locationsByType, (pieceOfLocations) => {

@@ -7,7 +7,7 @@ export class ConfigService {
   private config: any = {
     point: {
       persistence: 10,
-      width: 0.05,
+      width: 0.2,
       stroke: 'rgba(41, 235, 253, 0.2)',
       fill: 'white',
       cursor: 'white'
@@ -38,7 +38,29 @@ export class ConfigService {
     }
   }
 
+  public constructor() {
+    let storageConfig = localStorage.getItem('config')
+    let queryConfig = this.getQueryParams()
+    _.extend(this.config, {}, storageConfig, queryConfig)
+  }
+
   public get(path: string, defaultValue?: any) {
     return _.get(this.config, path, defaultValue)
   }
+
+  public set(path: string, value: any) {
+    _.set(this.config, path, value)
+    localStorage.setItem('config', this.config)
+  }
+
+  private getQueryParams() {
+    return (<any>_.chain(window)
+      .get('location.search', ''))
+      .trimStart('?')
+      .split('&')
+      .map(param => param.split('='))
+      .fromPairs()
+      .value()
+  }
+
 }

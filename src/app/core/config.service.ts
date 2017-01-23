@@ -9,8 +9,11 @@ export class ConfigService {
       persistence: 10,
       width: 0.2,
       stroke: 'rgba(41, 235, 253, 0.2)',
-      fill: 'white',
-      cursor: 'white'
+      fill: 'white'
+    },
+    cursor: {
+      stroke: 'white',
+      width: 0.2
     },
     background: {
       path: '/assets/backgrounds/',

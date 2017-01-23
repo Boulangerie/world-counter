@@ -169,7 +169,7 @@ export class MapComponent {
     let staticContextShadow = this.staticCanvas[index].shadowContext
     staticContextShadow.beginPath()
     staticContextShadow.fillStyle = strokeColor
-    staticContextShadow.arc(coordinates.x - strokeWidth, coordinates.y - strokeWidth, strokeWidth * 2, 0, 2 * Math.PI, false)
+    staticContextShadow.arc(coordinates.x, coordinates.y, strokeWidth * 2, 0, 2 * Math.PI, false)
     staticContextShadow.lineWidth = strokeWidth
     staticContextShadow.strokeStyle = strokeColor
     staticContextShadow.fill()
@@ -177,14 +177,15 @@ export class MapComponent {
   }
 
   private addAnimatedPoint(lat: number, lng: number): void {
-    const strokeColor = this.configService.get('point.cursor')
+    const strokeWidth = this.configService.get('cursor.width')
+    const strokeColor = this.configService.get('cursor.stroke')
     const coordinates = this.getTranslate(lat, lng)
     const animatedCanvasBubble: HTMLCanvasElement = <HTMLCanvasElement> this.animated.nativeElement
     const animatedContextBubble: CanvasRenderingContext2D = animatedCanvasBubble.getContext('2d')
     animatedContextBubble.clearRect(0, 0, animatedCanvasBubble.width, animatedCanvasBubble.height)
     animatedContextBubble.beginPath()
     animatedContextBubble.strokeStyle = strokeColor
-    animatedContextBubble.lineWidth = .2
+    animatedContextBubble.lineWidth = strokeWidth
     animatedContextBubble.moveTo(0, coordinates.y)
     animatedContextBubble.lineTo(animatedCanvasBubble.width, coordinates.y)
     animatedContextBubble.moveTo(coordinates.x, 0)

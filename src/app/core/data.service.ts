@@ -36,7 +36,7 @@ export class DataService {
     this.source = source
   }
 
-  public getInitialCount(type: string, unsample: boolean = true): Observable<any> {
+  public getInitialCount(type: string, unsample: boolean = false): Observable<any> {
     const offset = moment().utcOffset()
     const samplingRatio: number = <number> this.configService.get('data.samplingRatio')
     const url: string = <string> this.configService.get('initialCount.url')
@@ -86,7 +86,7 @@ export class DataService {
     })
   }
 
-  private formatLocations(newLocations: Array<any>, unsample: boolean = true) {
+  private formatLocations(newLocations: Array<any>, unsample: boolean = false) {
     for (let newLocation of newLocations) {
       newLocation.time = parseInt(newLocation.time, 10)
       newLocation.longitude = parseFloat(newLocation.longitude)

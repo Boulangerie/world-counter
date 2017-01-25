@@ -97,11 +97,11 @@ export class MapComponent {
         this.startTimestamp = currentTimestamp
       }
 
-      let gapTimestamp = currentTimestamp - this.startTimestamp
       if (!this.startTime) {
         this.startTime = current.time
       }
 
+      let gapTimestamp = currentTimestamp - this.startTimestamp
       let gapTime = current.time - this.startTime
       while ((gapTime < gapTimestamp) && (this.locations.length > 0)) {
         this.locations.shift()

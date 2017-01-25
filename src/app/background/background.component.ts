@@ -1,4 +1,4 @@
-import { Component, AfterViewChecked } from '@angular/core';
+import { Component } from '@angular/core';
 import { ConfigService } from '../core/config.service'
 import { ViewChild } from '@angular/core/src/metadata/di'
 import { ViewportService } from '../core/viewport.service'
@@ -19,11 +19,10 @@ export class BackgroundComponent {
     this.viewportService = viewportService
     this.url = configService.get('background.path') + configService.get('background.file')
 
-    window.addEventListener('resize', this.calculateSize);
-  }
+    window.addEventListener('resize', this.calculateSize)
 
-  public ngAfterViewChecked() {
-    this.calculateSize()
+    // @todo find a better way (or just a good one) to calculate background size after initialization
+    window.setTimeout(this.calculateSize.bind(this), 1000)
   }
 
   public calculateSize() {

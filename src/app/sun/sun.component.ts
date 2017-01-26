@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { ViewportService } from '../core/viewport.service'
 import { ConfigService } from '../core/config.service'
+import { LocationService, ICartesianCoordinates } from '../core/location.service'
 
 @Component({
   selector: 'app-sun',
@@ -9,17 +10,21 @@ import { ConfigService } from '../core/config.service'
 })
 export class SunComponent {
 
-  public coordinates: { x: number, y: number } = { x: 0, y: 0 }
+  public coordinates: ICartesianCoordinates
   private viewportService: ViewportService
   private configService: ConfigService
+  private locationService: LocationService
 
-  public constructor(viewportService: ViewportService, configService: ConfigService) {
+  public constructor(viewportService: ViewportService, configService: ConfigService, locationService: LocationService) {
     this.viewportService = viewportService
     this.configService = configService
+    this.locationService = locationService
+
+    this.coordinates = { x: 0, y: 0 }
 
     setInterval(() => {
       this.refresh()
-    }, this.configService.get('sun.refreshInterval'))
+    }, <number> this.configService.get('sun.refreshInterval'))
 
     this.viewportService.getWidth()
       .subscribe(() => {
@@ -42,11 +47,11 @@ export class SunComponent {
     return this.viewportService.getWidth().getValue()
   }
 
-  private refresh() {
+  private refresh(): void {
     this.coordinates = this.getSunPosition(Date.now() / 1000)
   }
 
-  private getSunPosition(time: number) {
+  private getSunPosition(time: number): ICartesianCoordinates {
     let b = (time - 946684800) / 31557600
     let h = b / 100
     let e = 2.236174E-4 + 1.35263017E-7 * h
@@ -77,12 +82,7 @@ export class SunComponent {
     for (; 180 < lng;) {
       lng -= 360;
     }
-    return this.getTranslate(lat, lng)
+    return this.locationService.getTranslate(lat, lng)
   }
 
-  private getTranslate(lat, lng) {
-    let x = (lng + 180) * (this.viewportService.getWidth().getValue() / 360)
-    let y = (lat - 90) / -180 * this.viewportService.getHeight().getValue()
-    return { x: x, y: y }
-  }
 }

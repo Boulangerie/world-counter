@@ -24,15 +24,17 @@ export class ConfigService {
       refreshInterval: 30000
     },
     data: {
-      samplingRatio: 10
+      minTimeGap: 10000,
+      source: 'socket'
     },
     initialCount: {
       url: '/count/daily'
     },
     socket: {
       server: '',
-      type: 'hits',
+      event: 'hits',
       filter: 'event',
+      type: 'videocomplete',
       label: 'video completes'
     },
     mock: {
@@ -47,11 +49,11 @@ export class ConfigService {
     _.extend(this.config, {}, storageConfig, queryConfig)
   }
 
-  public get(path: string, defaultValue?: any) {
+  public get(path: string, defaultValue?: any): any {
     return _.get(this.config, path, defaultValue)
   }
 
-  public set(path: string, value: any) {
+  public set(path: string, value: any): void {
     _.set(this.config, path, value)
     localStorage.setItem('config', this.config)
   }

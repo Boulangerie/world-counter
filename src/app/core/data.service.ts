@@ -57,11 +57,24 @@ export class DataService {
     const locations: Array<ILocation> = []
     const filter: string = <string> this.configService.get('socket.filter')
     const type: string = <string> this.configService.get('socket.type')
+    const coordinates: Array<string> = <Array<string>> this.configService.get('mock.coordinates')
     for (let i: number = 0; i < this.configService.get('mock.volume'); i++) {
+      const pieceOfCoordinatesIndex: number = _.random(0, coordinates.length - 1)
+      const pieceOfCoordinates = _.chain(coordinates)
+        .get<_.LoDashExplicitWrapper<string>>(pieceOfCoordinatesIndex)
+        .split(',')
+      const latitude: number = pieceOfCoordinates
+        .get<_.LoDashExplicitWrapper<string>>(0)
+        .thru(parseFloat)
+        .value()
+      const longitude: number = pieceOfCoordinates
+        .get<_.LoDashExplicitWrapper<string>>(1)
+        .thru(parseFloat)
+        .value()
       let location: ILocation = {
         time: this.mockTime,
-        latitude: _.random(-90, 90, true),
-        longitude: _.random(-180, 180, true)
+        latitude: latitude,
+        longitude: longitude
       }
       if (filter) {
         location[filter] = type

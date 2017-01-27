@@ -58,6 +58,7 @@ export class DataService {
     const filter: string = <string> this.configService.get('socket.filter')
     const type: string = <string> this.configService.get('socket.type')
     const coordinates: Array<string> = <Array<string>> this.configService.get('mock.coordinates')
+    const gap: number = <number> this.configService.get('mock.gap')
     for (let i: number = 0; i < this.configService.get('mock.volume'); i++) {
       const pieceOfCoordinatesIndex: number = _.random(0, coordinates.length - 1)
       const pieceOfCoordinates = _.chain(coordinates)
@@ -80,7 +81,7 @@ export class DataService {
         location[filter] = type
       }
       locations.push(location)
-      this.mockTime = this.mockTime + 10
+      this.mockTime = this.mockTime + gap
     }
     fn(locations)
   }

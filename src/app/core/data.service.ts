@@ -48,16 +48,20 @@ export class DataService {
   }
 
   private mockData(fn: Function): void {
-    this.mockTime = Date.now()
-    setInterval(this.refreshMock.bind(this), this.configService.get('mock.interval'), fn)
-    this.refreshMock(fn)
+    this.http
+      .get('assets/coordinates.mock.json')
+      .map(res => res.json())
+      .subscribe((coordinates) => {
+        this.mockTime = Date.now()
+        setInterval(this.refreshMock.bind(this), this.configService.get('mock.interval'), coordinates, fn)
+        this.refreshMock(coordinates, fn)
+      })
   }
 
-  private refreshMock(fn: Function): void {
+  private refreshMock(coordinates: Array<string>, fn: Function): void {
     const locations: Array<ILocation> = []
     const filter: string = <string> this.configService.get('socket.filter')
     const type: string = <string> this.configService.get('socket.type')
-    const coordinates: Array<string> = <Array<string>> this.configService.get('mock.coordinates')
     const gap: number = <number> this.configService.get('mock.gap')
     for (let i: number = 0; i < this.configService.get('mock.volume'); i++) {
       const pieceOfCoordinatesIndex: number = _.random(0, coordinates.length - 1)

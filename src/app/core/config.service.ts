@@ -16,7 +16,7 @@ export class ConfigService {
       width: 0.2
     },
     background: {
-      path: '/assets/backgrounds/',
+      path: 'assets/backgrounds/',
       file: 'background-0.jpg'
     },
     sun: {

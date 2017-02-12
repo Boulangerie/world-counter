@@ -6,10 +6,10 @@
     <app-background></app-background>
     <app-sun></app-sun>
     <canvas #animated></canvas>
-    <div #canvasShadow>
+    <div #canvasBack>
       <canvas *ngFor="let i of canvasLayers"></canvas>
     </div>
-    <div #canvasBubble>
+    <div #canvasFront>
       <canvas *ngFor="let i of canvasLayers"></canvas>
     </div>
     <div class="info">

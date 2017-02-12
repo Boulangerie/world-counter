@@ -12,7 +12,8 @@ export class ConfigService {
       fill: 'white'
     },
     cursor: {
-      stroke: 'white',
+      type: 'bubble',
+      stroke: 'rgb(41, 235, 253)',
       width: 0.2
     },
     background: {
